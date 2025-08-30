@@ -1,0 +1,44 @@
+[
+  {
+    "topic": "react",
+    "question": "What is the difference between useState and useRef in React?",
+    "expectedPoints": [
+      "useState causes re-render when value changes",
+      "useRef does not cause re-render",
+      "useRef used for accessing DOM elements",
+      "useState returns [value, setter], useRef returns { current: value }",
+      "Examples of when to use each"
+    ],
+    "difficulty": "medium",
+    "tags": ["hooks", "state", "references"],
+    "category": "conceptual"
+  },
+  {
+    "topic": "javascript",
+    "question": "Explain closures in JavaScript with an example",
+    "expectedPoints": [
+      "Function that remembers its lexical scope",
+      "Access to outer function's variables",
+      "Data privacy and encapsulation",
+      "Common use cases (modules, callbacks)",
+      "Example with counter or timer"
+    ],
+    "difficulty": "medium",
+    "tags": ["closures", "scope", "functions"],
+    "category": "conceptual"
+  },
+  {
+    "topic": "nodejs",
+    "question": "What is the event loop in Node.js?",
+    "expectedPoints": [
+      "Single-threaded non-blocking I/O",
+      "Phases: timers, pending callbacks, poll, check, close",
+      "How it handles asynchronous operations",
+      "Difference from multi-threaded model",
+      "Example with setTimeout and setImmediate"
+    ],
+    "difficulty": "hard",
+    "tags": ["event-loop", "async", "performance"],
+    "category": "conceptual"
+  }
+]
