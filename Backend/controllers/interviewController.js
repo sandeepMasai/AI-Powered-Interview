@@ -48,22 +48,13 @@ export const submitAnswer = async (req, res) => {
     const { sessionId, questionId, answer } = req.body;
     const userId = req.user.id;
 
-    const session = await InterviewSession.findOne({
-      _id: sessionId,
-      userId
-    });
+    const session = await InterviewSession.findOne({ _id: sessionId, userId });
+    if (!session) return res.status(404).json({ message: 'Session not found' });
 
-    if (!session) {
-      return res.status(404).json({ message: 'Session not found' });
-    }
-
-    // Find the question in session
     const question = session.questions.id(questionId);
-    if (!question) {
-      return res.status(404).json({ message: 'Question not found' });
-    }
+    if (!question) return res.status(404).json({ message: 'Question not found' });
 
-    // Evaluate answer using AI
+    // Evaluate answer
     const evaluation = await AIEvaluationService.evaluateAnswer({
       question: question.question,
       userAnswer: answer,
@@ -71,18 +62,22 @@ export const submitAnswer = async (req, res) => {
       topic: session.topic
     });
 
-    // Update question with answer and evaluation
+    // Ensure score is a valid number
+    const safeScore = Number(evaluation.score);
     question.userAnswer = answer;
-    question.score = evaluation.score;
-    question.feedback = evaluation.feedback;
-    question.missedPoints = evaluation.missedPoints;
+    question.score = isNaN(safeScore) ? 0 : safeScore;
+    question.feedback = evaluation.feedback || '';
+    question.missedPoints = evaluation.missedPoints || [];
     question.evaluatedAt = new Date();
 
     await session.save();
 
     res.json({
       success: true,
-      evaluation,
+      evaluation: {
+        ...evaluation,
+        score: question.score // send back safe score
+      },
       questionId: question._id
     });
   } catch (error) {
@@ -90,57 +85,7 @@ export const submitAnswer = async (req, res) => {
   }
 };
 
-export const completeInterview = async (req, res) => {
-  try {
-    const { sessionId } = req.body;
-    const userId = req.user.id;
 
-    const session = await InterviewSession.findOne({
-      _id: sessionId,
-      userId
-    });
-
-    if (!session) {
-      return res.status(404).json({ message: 'Session not found' });
-    }
-
-    // Calculate overall score
-    const answeredQuestions = session.questions.filter(q => q.userAnswer);
-    const totalScore = answeredQuestions.reduce((sum, q) => sum + q.score, 0);
-    const averageScore = answeredQuestions.length > 0 ? totalScore / answeredQuestions.length : 0;
-
-    // Update session
-    session.status = 'completed';
-    session.completedAt = new Date();
-    session.score = averageScore;
-
-    // Update user progress
-     const weakAreas = calculateWeakAreas(session.questions);
-     
-    await User.findByIdAndUpdate(userId, {
-      $inc: { 'progress.totalSessions': 1 },
-      $set: { 
-        'progress.averageScore': averageScore,
-        'progress.weakAreas': weakAreas
-      }
-    });
-
-    await session.save();
-
-    res.json({
-      success: true,
-      session: {
-        id: session._id,
-        score: session.score,
-        totalQuestions: session.questions.length,
-        answeredQuestions: answeredQuestions.length,
-        completedAt: session.completedAt
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
 
 export const getSession = async (req, res) => {
   try {
@@ -188,13 +133,54 @@ export const getSessionHistory = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+export const completeInterview = async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    const session = await InterviewSession.findById(sessionId).populate('questions');
 
-// Helper method to calculate weak areas
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    // calculate total score
+    let totalScore = 0;
+    const questions = session.questions.map(q => {
+      const questionScore = q.score || 0;
+      totalScore += questionScore;
+
+      return {
+        _id: q._id,
+        question: q.question,
+        userAnswer: q.userAnswer,
+        score: q.score,
+        feedback: q.feedback,
+        missedPoints: q.missedPoints || []
+      };
+    });
+
+    const finalScore = Math.round(totalScore / questions.length);
+
+    session.score = finalScore;
+    session.completed = true;
+    await session.save();
+
+    res.json({
+      score: finalScore,
+      questions
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+// ✅ Safe weak area calculator
 function calculateWeakAreas(questions) {
   const weakAreas = {};
-  
+
   questions.forEach(q => {
-    if (q.score < 7) {
+    const score = Number(q.score) || 0;
+    if (score < 7 && Array.isArray(q.missedPoints)) {
       q.missedPoints.forEach(point => {
         weakAreas[point] = (weakAreas[point] || 0) + 1;
       });
