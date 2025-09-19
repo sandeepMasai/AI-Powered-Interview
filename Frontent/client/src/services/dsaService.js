@@ -1,4 +1,4 @@
-// src/services/dsaService.js
+
 import api from './api'
 
 export const dsaService = {
@@ -31,3 +31,25 @@ export const dsaService = {
     return response.data
   }
 }
+
+import axios from 'axios';
+
+export const evaluateSolution = async ({ code, language, questionId }) => {
+  const token = localStorage.getItem('token');
+
+  try {
+    const res = await axios.post(
+      'http://localhost:2025/api/dsa/evaluate',
+      { code, language, questionId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    return res.data;
+  } catch (err) {
+    console.error('Solution evaluation error:', err.response?.data || err.message);
+    throw new Error(err.response?.data?.message || 'Server error');
+  }
+};

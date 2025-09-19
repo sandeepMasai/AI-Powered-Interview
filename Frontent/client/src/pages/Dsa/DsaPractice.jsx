@@ -1,191 +1,82 @@
 
-import React, { useState, useEffect } from 'react'
-import { useInterview } from '../../context/InterviewContext'
-import ProblemStatement from '../../components/dsa/ProblemStatement'
-import CodeEditor from '../../components/dsa/CodeEditor'
-import TestCases from '../../components/dsa/TestCases'
-import DsaResults from '../../components/dsa/DsaResults'
-import { dsaService } from '../../services/dsaService'
-import toast from 'react-hot-toast'
+import React, { useEffect, useState } from 'react';
+import useDsa from '../../hooks/useDsa';
+import ProblemStatement from '../../components/dsa/ProblemStatement';
+import CodeEditor from '../../components/dsa/CodeEditor';
+
+
 
 const DsaPractice = () => {
-  const { setDsaSession } = useInterview()
-  const [problems, setProblems] = useState([])
-  const [currentProblem, setCurrentProblem] = useState(null)
-  const [userCode, setUserCode] = useState('')
-  const [results, setResults] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isRunning, setIsRunning] = useState(false)
+  const [selectedProblem, setSelectedProblem] = useState(null);
+  const [results, setResults] = useState(null);
+  const { getProblems, evaluateSolution, loading, usingFallback } = useDsa();
 
   useEffect(() => {
-    fetchProblems()
-  }, [])
+    loadProblems();
+  }, []);
 
-  const fetchProblems = async () => {
-    try {
-      setIsLoading(true)
-      const response = await dsaService.getProblems({
-        topic: 'arrays',
-        difficulty: 'easy',
-        limit: 10
-      })
-      setProblems(response.problems)
-      if (response.problems.length > 0) {
-        setCurrentProblem(response.problems[0])
-        setUserCode(generateInitialCode(response.problems[0]))
-      }
-    } catch (error) {
-      toast.error('Failed to load problems')
-      console.error('Problem fetch error:', error)
-    } finally {
-      setIsLoading(false)
+  const loadProblems = async () => {
+    const response = await getProblems({ difficulty: 'easy' });
+    if (response.problems.length > 0) {
+      setSelectedProblem(response.problems[0]);
     }
-  }
-
-  const generateInitialCode = (problem) => {
-    if (!problem) return '// Write your solution here'
-    
-    return `function ${problem.functionName}(input) {
-  // Your code here
-  return input;
-}
-
-// Example usage:
-// const result = ${problem.functionName}([1, 2, 3]);
-// console.log(result);`
-  }
+  };
 
   const handleRunCode = async (code) => {
-    if (!currentProblem) return
-
-    setIsRunning(true)
-    try {
-      const response = await dsaService.evaluateSolution(
-        currentProblem._id,
-        code,
-        'javascript'
-      )
-      setResults(response.evaluation)
-      setDsaSession(response.evaluation)
-      toast.success('Code executed successfully!')
-    } catch (error) {
-      toast.error('Failed to run code')
-      console.error('Code execution error:', error)
-    } finally {
-      setIsRunning(false)
+    if (!selectedProblem) {
+      alert('No problem selected.');
+      return;
     }
-  }
 
-  const handleResetCode = () => {
-    setUserCode(generateInitialCode(currentProblem))
-    setResults(null)
-  }
-
-  const handleNextProblem = () => {
-    if (problems.length > 0) {
-      const currentIndex = problems.findIndex(p => p._id === currentProblem._id)
-      const nextIndex = (currentIndex + 1) % problems.length
-      const nextProblem = problems[nextIndex]
-      setCurrentProblem(nextProblem)
-      setUserCode(generateInitialCode(nextProblem))
-      setResults(null)
+    const res = await evaluateSolution(selectedProblem._id, code);
+    if (res && res.results) {
+      setResults(res.results);
+    } else {
+      alert('Code execution failed. Please try again.');
     }
-  }
+  };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
-  }
-
-  if (!currentProblem) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-600">No problems available</p>
-        <button
-          onClick={fetchProblems}
-          className="btn-primary mt-4"
-        >
-          Load Problems
-        </button>
-      </div>
-    )
-  }
+  if (loading) return <div className="p-4">Loading problems...</div>;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">DSA Practice</h1>
-        <p className="text-gray-600 mt-2">
-          Solve coding problems and test your solutions
-        </p>
+    <div className="flex h-[calc(100vh-60px)]">
+      {/* Problem Statement */}
+      <div className="w-1/2 p-4 overflow-auto border-r border-gray-300">
+        {usingFallback && <div className="text-yellow-600 mb-2">Demo mode: Using sample problems</div>}
+        {selectedProblem && <ProblemStatement problem={selectedProblem} />}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column - Problem Statement */}
-        <div>
-          <ProblemStatement problem={currentProblem} />
-        </div>
+      {/* Code Editor & Results */}
+      <div className="w-1/2 p-4 flex flex-col">
+        <CodeEditor
+          initialCode={selectedProblem?.starterCode || ''}
+          language={selectedProblem?.language || 'javascript'}
+          onRunCode={handleRunCode}
+        />
 
-        {/* Right Column - Code Editor and Results */}
-        <div className="space-y-6">
-          <CodeEditor
-            initialCode={userCode}
-            language="javascript"
-            onRunCode={handleRunCode}
-            onReset={handleResetCode}
-            isLoading={isRunning}
-          />
-
-          <TestCases
-            testCases={currentProblem.testCases}
-            results={results?.results}
-            isLoading={isRunning}
-          />
-
-          {results && (
-            <DsaResults
-              results={results}
-              onTryAgain={handleResetCode}
-              onNextProblem={handleNextProblem}
-            />
-          )}
-        </div>
+        {/* Results Panel */}
+        {results && (
+          <div className="mt-4 bg-gray-100 p-3 rounded text-sm max-h-64 overflow-auto">
+            <h3 className="font-semibold mb-2">Test Case Results</h3>
+            {results.map((r, i) => (
+              <div
+                key={i}
+                className={`border-l-4 px-2 py-1 mb-2 ${
+                  r.passed ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'
+                }`}
+              >
+                <div><strong>Input:</strong> {r.input}</div>
+                <div><strong>Expected:</strong> {r.expected}</div>
+                <div><strong>Output:</strong> {r.output}</div>
+                <div><strong>Status:</strong> {r.passed ? '✅ Passed' : '❌ Failed'}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Problem Navigation */}
-      {problems.length > 1 && (
-        <div className="flex justify-between items-center mt-6">
-          <button
-            onClick={() => {
-              const currentIndex = problems.findIndex(p => p._id === currentProblem._id)
-              const prevIndex = (currentIndex - 1 + problems.length) % problems.length
-              setCurrentProblem(problems[prevIndex])
-              setUserCode(generateInitialCode(problems[prevIndex]))
-              setResults(null)
-            }}
-            className="btn-secondary"
-          >
-            Previous Problem
-          </button>
-
-          <span className="text-gray-600">
-            Problem {problems.findIndex(p => p._id === currentProblem._id) + 1} of {problems.length}
-          </span>
-
-          <button
-            onClick={handleNextProblem}
-            className="btn-primary"
-          >
-            Next Problem
-          </button>
-        </div>
-      )}
     </div>
-  )
-}
+  );
+};
 
-export default DsaPractice
+export default DsaPractice;
+

@@ -1,122 +1,105 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Code, MessageSquare, CheckCircle } from 'lucide-react';
 
-import React, { useState } from 'react'
-import { Send, Clock, HelpCircle } from 'lucide-react'
+const QuestionCard = ({ question, onSubmitAnswer }) => {
+  const [answer, setAnswer] = useState(question.userAnswer || '');
+  const [selectedOption, setSelectedOption] = useState('');
 
-const QuestionCard = ({ question, onSubmitAnswer, timeLimit, currentQuestion, totalQuestions }) => {
-  const [answer, setAnswer] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const handleSubmit = () => {
+    const finalAnswer =
+      question.type === 'multiple-choice' ? selectedOption : answer;
+    if (finalAnswer.trim()) onSubmitAnswer(question._id, finalAnswer);
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!answer.trim() || isSubmitting) return
+  const getDifficultyColor = (diff) =>
+    ({
+      easy: 'bg-green-100 text-green-800',
+      medium: 'bg-amber-100 text-amber-800',
+      hard: 'bg-red-100 text-red-800',
+    }[diff] || 'bg-muted text-muted-foreground');
 
-    setIsSubmitting(true)
-    try {
-      await onSubmitAnswer(question._id, answer.trim())
-      setAnswer('')
-    } catch (error) {
-      console.error('Error submitting answer:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  const getTypeIcon = (type) =>
+    ({
+      coding: <Code className="h-4 w-4" />,
+      'multiple-choice': <CheckCircle className="h-4 w-4" />,
+      default: <MessageSquare className="h-4 w-4" />,
+    }[type] || <MessageSquare className="h-4 w-4" />);
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+  const formatDifficulty = (diff) => {
+    if (!diff || typeof diff !== 'string') return 'Unknown';
+    return diff.charAt(0).toUpperCase() + diff.slice(1);
+  };
 
   return (
-    <div className="card">
-      {/* Question Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-2">
-          <HelpCircle className="w-5 h-5 text-blue-600" />
-          <span className="text-sm font-medium text-gray-600">
-            Question {currentQuestion} of {totalQuestions}
-          </span>
-        </div>
-        {timeLimit && (
-          <div className="flex items-center space-x-2">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-medium text-gray-600">
-              {formatTime(timeLimit)}
-            </span>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-secondary rounded-lg">
+            {getTypeIcon(question.type)}
           </div>
-        )}
+          <Badge className={getDifficultyColor(question.difficulty)}>
+            {formatDifficulty(question.difficulty)}
+          </Badge>
+        </div>
       </div>
+
+      <Separator />
 
       {/* Question Text */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          {question.question}
-        </h2>
-        {question.description && (
-          <p className="text-gray-600 mb-4">{question.description}</p>
-        )}
-        {question.examples && question.examples.length > 0 && (
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-medium text-gray-900 mb-2">Example:</h3>
-            {question.examples.map((example, index) => (
-              <div key={index} className="text-sm text-gray-600">
-                {example.input && (
-                  <p><strong>Input:</strong> {example.input}</p>
-                )}
-                {example.output && (
-                  <p><strong>Output:</strong> {example.output}</p>
-                )}
-                {example.explanation && (
-                  <p><strong>Explanation:</strong> {example.explanation}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="prose prose-sm max-w-none text-lg font-medium">
+        {question.text || question.question || 'Untitled Question'}
       </div>
 
-      {/* Answer Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="answer" className="form-label">
-            Your Answer
-          </label>
-          <textarea
-            id="answer"
+      {/* Answer */}
+      {question.type === 'multiple-choice' && question.options ? (
+        <div className="space-y-2">
+          {question.options.map((opt, i) => (
+            <div
+              key={i}
+              className={`p-3 border rounded-lg cursor-pointer ${
+                selectedOption === opt
+                  ? 'border-primary bg-gradient-secondary'
+                  : 'hover:border-primary'
+              }`}
+              onClick={() => setSelectedOption(opt)}
+            >
+              {opt}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Type your answer here... Be detailed and include examples where possible."
-            className="form-input min-h-[120px] resize-vertical"
-            required
+            placeholder={
+              question.type === 'coding'
+                ? 'Write your code here...'
+                : 'Answer here...'
+            }
           />
         </div>
+      )}
 
-        <button
-          type="submit"
-          disabled={!answer.trim() || isSubmitting}
-          className="w-full btn-primary flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      <div className="flex justify-end">
+        <Button
+          onClick={handleSubmit}
+          disabled={
+            question.type === 'multiple-choice'
+              ? !selectedOption
+              : !answer.trim()
+          }
         >
-          {isSubmitting ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Send className="w-5 h-5" />
-          )}
-          <span>{isSubmitting ? 'Submitting...' : 'Submit Answer'}</span>
-        </button>
-      </form>
-
-      {/* Tips */}
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-medium text-blue-900 mb-2">💡 Tips for a great answer:</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Be specific and provide examples</li>
-          <li>• Explain your thought process</li>
-          <li>• Mention best practices and alternatives</li>
-          <li>• Include code snippets if relevant</li>
-        </ul>
+          Submit Answer
+        </Button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default QuestionCard
+export default QuestionCard;

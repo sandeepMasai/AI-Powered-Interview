@@ -1,5 +1,4 @@
-
-import api from './api'
+import api from '../services/api'
 
 export const interviewService = {
   startInterview: async (topic, duration, difficulty) => {
@@ -8,7 +7,15 @@ export const interviewService = {
       duration,
       difficulty
     })
-    return response.data
+
+    // normalize API response → return as "session" object
+    return {
+      session: {
+        _id: response.data.sessionId,
+        duration: response.data.duration,
+        questions: response.data.questions
+      }
+    }
   },
 
   submitAnswer: async (sessionId, questionId, answer) => {
