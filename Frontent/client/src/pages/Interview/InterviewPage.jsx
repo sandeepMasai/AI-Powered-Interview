@@ -1,181 +1,8 @@
-// import React, { useState } from 'react'
-// import { useNavigate } from 'react-router-dom'
-// import toast from 'react-hot-toast'
-
-// import InterviewSetup from '../../components/interview/InterviewSetup'
-// import QuestionCard from '../../components/interview/QuestionCard'
-// import Timer from '../../components/interview/Timer'
-// import { interviewService } from '../../services/interviewService'
-
-// const InterviewPage = () => {
-//   const [currentStep, setCurrentStep] = useState('setup') // setup | interview
-//   const [session, setSession] = useState(null)
-//   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-//   const [isLoading, setIsLoading] = useState(false)
-//   const [loadingMessage, setLoadingMessage] = useState('')
-//   const [isBlitzMode, setIsBlitzMode] = useState(false)
-
-//   const navigate = useNavigate()
-
-//   // Start Interview
-//   const handleStartInterview = async (settings) => {
-//     setIsLoading(true)
-//     setLoadingMessage('Starting interview...')
-
-//     try {
-//       setIsBlitzMode(settings.isBlitzMode)
-
-//       const response = await interviewService.startInterview(
-//         settings.topic,
-//         settings.duration,
-//         settings.difficulty
-//       )
-
-//       setSession(response.session)
-//       setCurrentStep('interview')
-//       setCurrentQuestionIndex(0)
-//       toast.success('Interview started! Good luck!')
-//     } catch (error) {
-//       console.error(error)
-//       toast.error('Failed to start interview. Please try again.')
-//     } finally {
-//       setIsLoading(false)
-//     }
-//   }
-
-//   // Submit Answer
-//   const handleSubmitAnswer = async (questionId, answer) => {
-//     if (!session) return
-
-//     setIsLoading(true)
-//     setLoadingMessage('Submitting answer...')
-
-//     try {
-//       const response = await interviewService.submitAnswer(
-//         session._id,
-//         questionId,
-//         answer
-//       )
-
-//       const updatedQuestions = session.questions.map((q) =>
-//         q._id === questionId
-//           ? { ...q, ...(response.evaluation || {}), userAnswer: answer, isAnswered: true }
-//           : q
-//       )
-//       setSession({ ...session, questions: updatedQuestions })
-
-//       if (currentQuestionIndex < updatedQuestions.length - 1) {
-//         setCurrentQuestionIndex((prev) => prev + 1)
-//       } else {
-//         await handleCompleteInterview()
-//       }
-//     } catch (error) {
-//       console.error(error)
-//       toast.error('Error submitting answer.')
-//     } finally {
-//       setIsLoading(false)
-//     }
-//   }
-
-//   // Complete Interview
-//   const handleCompleteInterview = async () => {
-//     if (!session) return
-
-//     setIsLoading(true)
-//     setLoadingMessage('Completing interview...')
-
-//     try {
-//       await interviewService.completeInterview(session._id)
-//       navigate(`/results/${session._id}`)
-//     } catch (error) {
-//       console.error(error)
-//       toast.error('Error completing interview.')
-//     } finally {
-//       setIsLoading(false)
-//     }
-//   }
-
-//   // Timer ends
-//   const handleTimeUp = async () => {
-//     if (isBlitzMode) {
-//       toast.error('⏱️ Blitz! Skipping question...')
-//     } else {
-//       toast.error('Time up! Moving to next...')
-//     }
-
-//     if (currentQuestionIndex < session.questions.length - 1) {
-//       setCurrentQuestionIndex((prev) => prev + 1)
-//     } else {
-//       await handleCompleteInterview()
-//     }
-//   }
-
-//   const currentQuestion = session?.questions?.[currentQuestionIndex] || null
-
-//   return (
-//     <div className="max-w-4xl mx-auto py-6 space-y-6">
-//       {/* Header */}
-//       <div className="flex items-center justify-between mb-6">
-//         <div>
-//           <h1 className="text-3xl font-bold">Interview Practice</h1>
-//           <p className="text-gray-600">
-//             {currentStep === 'setup' && 'Setup your interview session'}
-//             {currentStep === 'interview' &&
-//               `Question ${currentQuestionIndex + 1} of ${session?.questions.length}`}
-//           </p>
-//         </div>
-
-//         {currentStep === 'interview' && currentQuestion && (
-//           <Timer
-//             key={currentQuestion._id}
-//             initialTime={
-//               isBlitzMode
-//                 ? 30
-//                 : currentQuestion.timeLimit != null
-//                 ? currentQuestion.timeLimit * 60
-//                 : 5 * 60
-//             }
-//             onTimeUp={handleTimeUp}
-//           />
-//         )}
-//       </div>
-
-//       {/* Content */}
-//       {currentStep === 'setup' && (
-//         <InterviewSetup onStartInterview={handleStartInterview} />
-//       )}
-
-//       {currentStep === 'interview' && currentQuestion && (
-//         <QuestionCard
-//           key={currentQuestion._id}
-//           question={currentQuestion}
-//           onSubmitAnswer={handleSubmitAnswer}
-//         />
-//       )}
-
-//       {/* Loading Overlay */}
-//       {isLoading && (
-//         <div
-//           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-//           role="status"
-//           aria-live="polite"
-//         >
-//           <div className="bg-white p-4 rounded shadow-md text-center">
-//             <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-//             <p>{loadingMessage || 'Loading...'}</p>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   )
-// }
-
-// export default InterviewPage
 
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { Clock, User, BookOpen, Zap } from 'lucide-react'
+import {  User, BookOpen, Zap } from 'lucide-react'
 
 import InterviewSetup from '../../components/interview/InterviewSetup'
 import QuestionCard from '../../components/interview/QuestionCard'
@@ -183,7 +10,7 @@ import Timer from '../../components/interview/Timer'
 import { interviewService } from '../../services/interviewService'
 
 const InterviewPage = () => {
-  const [currentStep, setCurrentStep] = useState('setup') // setup | interview
+  const [currentStep, setCurrentStep] = useState('setup') 
   const [session, setSession] = useState(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
@@ -279,7 +106,7 @@ const InterviewPage = () => {
     if (!session) return
 
     if (isBlitzMode) {
-      toast.error('⏱️ Blitz! Skipping question...')
+      toast.error(' Blitz! Skipping question...')
     } else {
       toast.error('Time up! Moving to next...')
     }

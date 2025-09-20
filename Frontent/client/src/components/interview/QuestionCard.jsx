@@ -95,7 +95,7 @@ const QuestionCard = ({ question, onSubmitAnswer }) => {
               : !answer.trim()
           }
         >
-          Submit Answer
+          Submit Next
         </Button>
       </div>
     </div>

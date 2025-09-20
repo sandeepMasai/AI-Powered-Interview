@@ -80,7 +80,7 @@ const Home = () => {
                   <Link to="/interview" className="group">
                     <button className="relative px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-lg rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-3">
                       <MessageSquare className="h-5 w-5" />
-                      Start Interview
+                      Coding Practice
                       <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </Link>

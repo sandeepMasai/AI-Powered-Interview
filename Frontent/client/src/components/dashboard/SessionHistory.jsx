@@ -10,8 +10,7 @@ import {
 import { formatDate } from "../../utils/dateFormatter"
 
 const SessionHistory = ({ sessions = [], evaluations = [] }) => {
-  // console.log(sessions); 
-  console.table(evaluations );
+
   
   
   const [expandedSession, setExpandedSession] = useState(null)

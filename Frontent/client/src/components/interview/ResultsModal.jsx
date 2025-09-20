@@ -12,7 +12,7 @@ function ResultsModal() {
       setLoading(true)
       try {
         const res = await interviewService.completeInterview(sessionId)
-        setResult(res) // backend already sends { score, questions }
+        setResult(res)
       } catch (err) {
         console.error("Error fetching results:", err)
       }
@@ -82,3 +82,4 @@ function ResultsModal() {
 }
 
 export default ResultsModal
+

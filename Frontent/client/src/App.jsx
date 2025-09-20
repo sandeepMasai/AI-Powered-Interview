@@ -11,7 +11,7 @@ import InterviewPage from './pages/Interview/InterviewPage'
 import DsaPractice from './pages/Dsa/DsaPractice'
 import Profile from './pages/Profile/Profile'
 import DsaProblem from './pages/Dsa/DsaProblem'
-
+import ProtectedRoute from './components/common/ProtectedRoute';
 import ResultsModal from './components/interview/ResultsModal'
 
 import './App.css'
@@ -26,12 +26,46 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/interview" element={<InterviewPage />} />
-          <Route path="/results/:sessionId" element={<ResultsModal />} /> 
+          
           <Route path="/dsa" element={<DsaPractice />} />
           
           <Route path="/dsa/problem/:problemId?" element={<DsaProblem />} />
+
+
+ {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/interview"
+            element={
+              <ProtectedRoute>
+                <InterviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/results/:sessionId"
+            element={
+              <ProtectedRoute>
+                <ResultsModal />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -43,3 +77,6 @@ function App() {
 }
 
 export default App
+
+
+

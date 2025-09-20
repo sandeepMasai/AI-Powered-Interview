@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import ProgressChart from './ProgressChart' // Adjust the path as needed
+import ProgressChart from './ProgressChart' 
 
 const ProgressChartWrapper = () => {
   const [chartData, setChartData] = useState([])
@@ -13,10 +13,10 @@ const ProgressChartWrapper = () => {
         const response = await axios.get('/api/progress/history?days=30')
         const sessionProgress = response.data.progress?.sessionProgress || []
 
-        // Map to { date: "YYYY-MM-DD", score: percent out of 100 }
+        
         const formattedData = sessionProgress.map(item => ({
-          date: item._id, // Assuming _id is date string
-          score: Math.round((item.averageScore || 0) * 10) // scale 0-10 score to 0-100%
+          date: item._id, 
+          score: Math.round((item.averageScore || 0) * 10) 
         }))
 
         setChartData(formattedData)
