@@ -11,7 +11,7 @@ const progressSchema = new mongoose.Schema({
     totalSessions: { type: Number, default: 0 },
     completedSessions: { type: Number, default: 0 },
     averageScore: { type: Number, default: 0 },
-    totalTimeSpent: { type: Number, default: 0 }, // in minutes
+    totalTimeSpent: { type: Number, default: 0 }, 
     byTopic: {
       type: Map,
       of: {
@@ -91,7 +91,7 @@ progressSchema.methods.updateStreak = function() {
     : null;
 
   if (lastPracticeDate === today) {
-    return; // Already practiced today
+    return;
   }
 
   const yesterday = new Date();
