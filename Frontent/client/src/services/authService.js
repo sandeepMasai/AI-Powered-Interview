@@ -9,7 +9,7 @@ export const authService = {
 
   register: async (userData) => {
     const response = await api.post('/auth/register', userData)
-    return response.data
+    return response
   },
 
   getProfile: async () => {

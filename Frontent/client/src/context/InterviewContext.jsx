@@ -148,7 +148,7 @@ export function InterviewProvider({ children }) {
     ...state,
     dispatch,
     login,
-    register,   // ✅ Added here
+    register,   
     logout,
     setInterviewSession: (session) =>
       dispatch({ type: 'SET_INTERVIEW_SESSION', payload: session }),

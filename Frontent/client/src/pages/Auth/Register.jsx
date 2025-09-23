@@ -41,35 +41,38 @@ const Register = () => {
 
   const passwordsMatch = formData.password === formData.confirmPassword;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!passwordsMatch) {
-      toast.error('Passwords do not match');
-      return;
-    }
+  if (!passwordsMatch) {
+    toast.error('Passwords do not match');
+    return;
+  }
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    try {
-      await registerUser({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-      });
+  try {
+    await registerUser({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    });
 
-      toast.success('Account created successfully!');
-      navigate('/login');
-    } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        'Registration failed. Please try again.';
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    toast.success('Account created successfully!');
+    
+    //  Redirect to login page after successful registration
+    navigate('/login');
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      'Registration failed. Please try again.';
+    toast.error(message);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="max-w-md mx-auto py-10">
