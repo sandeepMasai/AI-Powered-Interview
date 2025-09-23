@@ -59,7 +59,7 @@ const Register = () => {
       });
 
       toast.success('Account created successfully!');
-      navigate('/profile');
+      navigate('/login');
     } catch (error) {
       const message =
         error.response?.data?.message ||
