@@ -4,7 +4,7 @@ const questionSchema = new mongoose.Schema({
   topic: {
     type: String,
     required: [true, 'Please add a topic'],
-    enum: ['react', 'javascript', 'nodejs', 'mongodb', 'html', 'css', 'system-design']
+    enum: ['react', 'javascript', 'nodejs', 'mongodb', 'html', 'css', 'system-design','backend']
   },
   question: {
     type: String,
