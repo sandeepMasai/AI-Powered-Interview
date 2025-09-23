@@ -21,21 +21,22 @@ const Register = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register } = useInterview();
+  // ✅ Rename to avoid conflict
+  const { register: registerUser } = useInterview();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const passwordsMatch = formData.password === formData.confirmPassword;
@@ -51,16 +52,20 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      await register({
+      await registerUser({
         name: formData.name,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
 
       toast.success('Account created successfully!');
-      navigate('/login');
+      navigate('/profile');
     } catch (error) {
-      toast.error(error.message || 'Registration failed. Please try again.');
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Registration failed. Please try again.';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +86,8 @@ const Register = () => {
 
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-6">
-            <div className="mb-6">
+            {/* Full Name */}
+            <div>
               <Label htmlFor="name" className="mb-2 block">
                 Full Name
               </Label>
@@ -96,7 +102,8 @@ const Register = () => {
               />
             </div>
 
-            <div className="mb-6">
+            {/* Email */}
+            <div>
               <Label htmlFor="email" className="mb-2 block">
                 Email Address
               </Label>
@@ -111,7 +118,8 @@ const Register = () => {
               />
             </div>
 
-            <div className="mb-6">
+            {/* Password */}
+            <div>
               <Label htmlFor="password" className="mb-2 block">
                 Password
               </Label>
@@ -128,7 +136,7 @@ const Register = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword((v) => !v)}
                   className="absolute inset-y-0 right-3 flex items-center"
                   tabIndex={-1}
                 >
@@ -141,7 +149,8 @@ const Register = () => {
               </div>
             </div>
 
-            <div className="mb-6">
+            {/* Confirm Password */}
+            <div>
               <Label htmlFor="confirmPassword" className="mb-2 block">
                 Confirm Password
               </Label>
@@ -155,12 +164,14 @@ const Register = () => {
                   onChange={handleChange}
                   required
                   className={`pr-10 ${
-                    formData.confirmPassword && !passwordsMatch ? 'border-red-500' : ''
+                    formData.confirmPassword && !passwordsMatch
+                      ? 'border-red-500'
+                      : ''
                   }`}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={() => setShowConfirmPassword((v) => !v)}
                   className="absolute inset-y-0 right-3 flex items-center"
                   tabIndex={-1}
                 >
@@ -172,10 +183,13 @@ const Register = () => {
                 </button>
               </div>
               {formData.confirmPassword && !passwordsMatch && (
-                <p className="text-sm text-red-600 mt-1">Passwords do not match</p>
+                <p className="text-sm text-red-600 mt-1">
+                  Passwords do not match
+                </p>
               )}
             </div>
 
+            {/* Submit Button */}
             <Button
               type="submit"
               disabled={isLoading || !passwordsMatch}

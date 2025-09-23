@@ -1,4 +1,3 @@
-
 import React, { createContext, useReducer, useEffect, useContext } from 'react';
 import { authService } from '../services/authService';
 
@@ -71,6 +70,7 @@ export const InterviewContext = createContext();
 export function InterviewProvider({ children }) {
   const [state, dispatch] = useReducer(interviewReducer, initialState);
 
+  // 🔹 Login
   const login = async (email, password) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
@@ -91,13 +91,34 @@ export function InterviewProvider({ children }) {
     }
   };
 
-  // ✅ Add logout function here
+  // 🔹 Register
+  const register = async ({ name, email, password }) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+      const data = await authService.register({ name, email, password });
+      dispatch({
+        type: 'LOGIN_SUCCESS',
+        payload: {
+          user: data.user,
+          token: data.token
+        }
+      });
+    } catch (error) {
+      dispatch({
+        type: 'SET_ERROR',
+        payload: error.response?.data?.message || 'Registration failed'
+      });
+      throw error;
+    }
+  };
+
+  // 🔹 Logout
   const logout = () => {
     dispatch({ type: 'LOGOUT' });
     localStorage.removeItem('token');
   };
 
-  // Auto-login
+  // 🔹 Auto-login (when token exists)
   useEffect(() => {
     const autoLogin = async () => {
       if (state.token && !state.user) {
@@ -127,11 +148,15 @@ export function InterviewProvider({ children }) {
     ...state,
     dispatch,
     login,
-    logout, 
-    setInterviewSession: (session) => dispatch({ type: 'SET_INTERVIEW_SESSION', payload: session }),
-    setDsaSession: (session) => dispatch({ type: 'SET_DSA_SESSION', payload: session }),
-    clearInterviewSession: () => dispatch({ type: 'CLEAR_INTERVIEW_SESSION' }),
-    clearDsaSession: () => dispatch({ type: 'CLEAR_DSA_SESSION' }),
+    register,   // ✅ Added here
+    logout,
+    setInterviewSession: (session) =>
+      dispatch({ type: 'SET_INTERVIEW_SESSION', payload: session }),
+    setDsaSession: (session) =>
+      dispatch({ type: 'SET_DSA_SESSION', payload: session }),
+    clearInterviewSession: () =>
+      dispatch({ type: 'CLEAR_INTERVIEW_SESSION' }),
+    clearDsaSession: () => dispatch({ type: 'CLEAR_DSA_SESSION' })
   };
 
   return (

@@ -1,12 +1,13 @@
 
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:2025/api'
+const API_BASE_URL =  'https://ai-powered-interview-mfag.onrender.com/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
-})
+  timeout: 30000, 
+});
+
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
