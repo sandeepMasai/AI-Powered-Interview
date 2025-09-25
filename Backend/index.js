@@ -44,7 +44,7 @@ app.use('/api/progress', progressRoutes);
 app.use('/api/questions', questionRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
